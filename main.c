@@ -9,6 +9,7 @@
 #include <string.h> //for strcopy stuff
 #include <pthread.h> //threads
 #include <errno.h> //stderr
+#include "imu.c"
 
 #define PI 3.14159265
 #define GREEN_LED1 5
@@ -42,12 +43,11 @@ void createDestinationArray(){
     while(fgets(buffer, sizeof(buffer), fd) != NULL){
         latArr[i] = strtod(strtok(strtok(buffer, "\n"), ","), NULL);
         lonArr[i] = strtod(strtok(NULL, ","), NULL);
+        printf("Entry %d: %f, %f\n", i, latArr[i], lonArr[i]);
         i++; 
         latArr = realloc(latArr, (i+1)*sizeof(double));
         lonArr = realloc(lonArr, (i+1)*sizeof(double));
     }
-    for(i=0; i<sizeof(latArr); i++)
-        printf("Entry %d: %f, %f\n", i, latArr[i], lonArr[i]);
     fclose(fd);
 }
 
@@ -160,12 +160,16 @@ void* loop(){
     double sGPSAlt = 0;
     double sGPSSpeed = 0;
     double sGPSHeading = 0;
+
+    double sIMUHeading = 0;
     
     double* PsGPSLat = &sGPSLat;
     double* PsGPSLon = &sGPSLon;
     double* PsGPSAlt = &sGPSAlt;
     double* PsGPSSpeed = &sGPSSpeed;
     double* PsGPSHeading = &sGPSHeading;
+
+    double* PsIMUHeading = &sIMUHeading;    
 
     while(keepRunning){
         getSerialData(PsGPSLat, PsGPSLon, PsGPSAlt, PsGPSSpeed, PsGPSHeading);
@@ -178,8 +182,11 @@ void* loop(){
         if(deltaLon < 0 && deltaLat > 0)
             bearing_to_dest = 360 + bearing_to_dest;
 
-        printf("Lat: %.4f, Lon: %.4f, GPS_Altitude: %.1fm, GPS_Speed: %.2fkn, GPS_Heading: %.1f, Bearing_to_Dest: %.1f\n", 
+        getIMUdata(PsIMUHeading);
+
+        printf("Lat: %.4f  Lon: %.4f  GPS_Altitude: %.1fm  GPS_Speed: %.2fkn  GPS_Heading: %.1f  Bearing_to_Dest: %.1f\n", 
                 sGPSLat, sGPSLon, sGPSAlt, sGPSSpeed, sGPSHeading, bearing_to_dest);
+        printf("IMU_Heading: %.1f\n", sIMUHeading);
 
         signed sLat = round(sGPSLat * 10000);
         signed sLon = round(sGPSLon * 10000);
@@ -237,6 +244,8 @@ int main(int argc, char* argv[]){
         printf("Unable to open serial port\n");
         exit(1);
     }
+
+    enableIMU();
 
     rc = pthread_create(&threads[0], NULL, strobe, (void*)0);
     if(rc){
