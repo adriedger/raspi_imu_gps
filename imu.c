@@ -41,7 +41,8 @@ void getIMUdata(double* heading){
     int mag_raw_y = (int16_t)(wiringPiI2CReadReg8(fd_acc_mag, 0x0A) | wiringPiI2CReadReg8(fd_acc_mag, 0x0B) << 8);
     int mag_raw_z = (int16_t)(wiringPiI2CReadReg8(fd_acc_mag, 0x0C) | wiringPiI2CReadReg8(fd_acc_mag, 0x0D) << 8);
 //    printf("%d, %d, %d\n", mag_raw[0], mag_raw[1], mag_raw[2]);
-    *heading = atan2((double)mag_raw_y, (double)mag_raw_x)*180/PI;
-//    *heading = atan((double)mag_raw_y/(double)mag_raw_x)*180/PI;
+    *heading = atan2((double)mag_raw_x, (double)mag_raw_y)*180/PI;
+    if(*heading < 0)
+        *heading += 360;
 }
 

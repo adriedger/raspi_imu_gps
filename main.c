@@ -9,7 +9,7 @@
 #include <string.h> //for strcopy stuff
 #include <pthread.h> //threads
 #include <errno.h> //stderr
-#include "imu.c"
+#include "imu.h"
 
 #define PI 3.14159265
 #define GREEN_LED1 5
@@ -183,9 +183,13 @@ void* loop(){
             bearing_to_dest = 360 + bearing_to_dest;
 
         getIMUdata(PsIMUHeading);
-
-        printf("Lat: %.4f  Lon: %.4f  GPS_Altitude: %.1fm  GPS_Speed: %.2fkn  GPS_Heading: %.1f  Bearing_to_Dest: %.1f\n", 
+        
+        if(no_gps_fix)
+            printf("No GPS Fix\n");
+        else
+            printf("Lat: %.4f  Lon: %.4f  GPS_Altitude: %.1fm  GPS_Speed: %.2fkn  GPS_Heading: %.1f  Bearing_to_Dest: %.1f\n", 
                 sGPSLat, sGPSLon, sGPSAlt, sGPSSpeed, sGPSHeading, bearing_to_dest);
+        
         printf("IMU_Heading: %.1f\n", sIMUHeading);
 
         signed sLat = round(sGPSLat * 10000);
