@@ -37,7 +37,7 @@ void createDestinationArray(){
     lonArr = malloc(sizeof(double));
     if( (fd = fopen("ddCoords.txt", "r")) );
     else{
-        printf("Coordinates file read Error: %s\n", strerror(errno));
+        printf("Coordinates file open Error: %s\n", strerror(errno));
         exit(1);
     }
     while(fgets(buffer, sizeof(buffer), fd) != NULL){
@@ -52,17 +52,13 @@ void createDestinationArray(){
 }
 
 void getSerialData(double* sGPSLat, double* sGPSLon, double* sGPSAlt, double* sGPSSpeed, double* sGPSHeading){ 
-    int rc;
     char buffer[82];
     char *token;
     int i = 0, j = 0, latSign = 1, lonSign= 1;
     char mLat[10], mLon[10], dLat[5], dLon[5];
     char altitude[10], speed[10], heading[10];
-    rc = read(serialPort, buffer, sizeof(buffer));
-    if(rc < 0){
-        printf("Serial port read failed\n");
-        exit(1);
-    }
+    read(serialPort, buffer, sizeof(buffer));
+
     if(strncmp(buffer, "$GPGGA", 6) == 0){
        token = strtok(buffer, ",");
 	   while(token != NULL){ 
@@ -176,11 +172,9 @@ void* loop(){
                 
         double deltaLat = latArr[current_dest]-sGPSLat;
         double deltaLon = lonArr[current_dest]-sGPSLon;
-        double bearing_to_dest = atan((deltaLon)/(deltaLat))*180/PI;
-        if((deltaLon > 0 && deltaLat < 0) || (deltaLon < 0 && deltaLat < 0))
-            bearing_to_dest = 180 + bearing_to_dest;
-        if(deltaLon < 0 && deltaLat > 0)
-            bearing_to_dest = 360 + bearing_to_dest;
+        double bearing_to_dest = atan2(deltaLon, deltaLat)*180/PI;
+        if(bearing_to_dest < 0)
+            bearing_to_dest += 360;
 
         getIMUdata(PsIMUHeading);
         
@@ -243,7 +237,7 @@ int main(int argc, char* argv[]){
     createDestinationArray();
     printf("Currently going to %.4f, %.4f\n", latArr[0], lonArr[0]);
 
-    serialPort = open("/dev/ttyAMA0", O_RDONLY | O_NOCTTY);
+    serialPort = open("/dev/ttyAMA0", O_RDONLY | O_NOCTTY | O_NDELAY | O_NONBLOCK);
     if(serialPort == -1){
         printf("Unable to open serial port\n");
         exit(1);

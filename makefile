@@ -1,15 +1,11 @@
 CC = gcc
-CFLAGS = -std=gnu11 -Wall -lwiringPi -lm
-
+CFLAGS = -std=gnu11 -Wall -lwiringPi -lm -lpthread
 
 all: guidance
 
 
-#imu.o: imu.c
-#	$(CC) -c $^ $(CFLAGS)
-
 guidance: main.o imu.o
-	$(CC) -o $@ $^ $(CFLAGS) -lpthread
+	$(CC) -o $@ $^ $(CFLAGS) 
 
 clean: 
 	rm guidance *.o
