@@ -158,6 +158,8 @@ void* loop(){
     double sGPSHeading = 0;
 
     double sIMUHeading = 0;
+    double sIMUPitch = 0;
+    double sIMURoll = 0;
     
     double* PsGPSLat = &sGPSLat;
     double* PsGPSLon = &sGPSLon;
@@ -166,6 +168,8 @@ void* loop(){
     double* PsGPSHeading = &sGPSHeading;
 
     double* PsIMUHeading = &sIMUHeading;    
+    double* PsIMUPitch = &sIMUPitch;    
+    double* PsIMURoll = &sIMURoll;    
 
     while(keepRunning){
         getSerialData(PsGPSLat, PsGPSLon, PsGPSAlt, PsGPSSpeed, PsGPSHeading);
@@ -176,7 +180,7 @@ void* loop(){
         if(bearing_to_dest < 0)
             bearing_to_dest += 360;
 
-        getIMUdata(PsIMUHeading);
+        getIMUdata(PsIMUHeading, PsIMUPitch, PsIMURoll);
         
         if(no_gps_fix)
             printf("No GPS Fix\n");
@@ -184,12 +188,12 @@ void* loop(){
             printf("Lat: %.4f  Lon: %.4f  GPS_Altitude: %.1fm  GPS_Speed: %.2fkn  GPS_Heading: %.1f  Bearing_to_Dest: %.1f\n", 
                 sGPSLat, sGPSLon, sGPSAlt, sGPSSpeed, sGPSHeading, bearing_to_dest);
         
-        printf("IMU_Heading: %.1f\n", sIMUHeading);
+        printf("IMU_Heading: %.1f  IMU_Pitch: %.1f  IMU_Roll: %.1f\n", sIMUHeading, sIMUPitch, sIMURoll);
 
-        signed sLat = round(sGPSLat * 10000);
-        signed sLon = round(sGPSLon * 10000);
-        signed dLat = round(latArr[current_dest] * 10000);
-        signed dLon = round(lonArr[current_dest] * 10000);
+        int sLat = round(sGPSLat * 10000);
+        int sLon = round(sGPSLon * 10000);
+        int dLat = round(latArr[current_dest] * 10000);
+        int dLon = round(lonArr[current_dest] * 10000);
         if(current_dest < sizeof(latArr)){
 	        if((dLat-2 <= sLat && sLat <= dLat+2) && (dLon-2 <= sLon && sLon <= dLon+2)){
 	            printf("Reached Destination %d\n", current_dest+1);

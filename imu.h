@@ -2,6 +2,6 @@
 #define IMU_H
 
 void enableIMU();
-void getIMUdata(double*);
+void getIMUdata(double*, double*, double*);
 
 #endif

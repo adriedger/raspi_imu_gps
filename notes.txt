@@ -1,0 +1,2 @@
+send guidance info through network packets to be picket up by programs on other devices
+create a python program to display info from guidance system

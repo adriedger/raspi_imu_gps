@@ -1,8 +1,7 @@
-#include <stdio.h>
 #include <stdint.h>
 #include <math.h>
-#include <wiringPi.h>
 #include <wiringPiI2C.h>
+#include "imu.h"
 
 #define PI 3.14159265
 
@@ -24,25 +23,35 @@ void enableIMU(){
     wiringPiI2CWriteReg8(fd_acc_mag, 0x26, 0b00000000); //continuous update
 }
 
-
-void getIMUdata(double* heading){
+void getIMUdata(double* heading, double* pitch, double* roll){
         
     int gyro_raw_x = (int16_t)(wiringPiI2CReadReg8(fd_gyro, 0x29) << 8 | wiringPiI2CReadReg8(fd_gyro, 0x28));
     int gyro_raw_y = (int16_t)(wiringPiI2CReadReg8(fd_gyro, 0x2B) << 8 | wiringPiI2CReadReg8(fd_gyro, 0x2A));
     int gyro_raw_z = (int16_t)(wiringPiI2CReadReg8(fd_gyro, 0x2D) << 8 | wiringPiI2CReadReg8(fd_gyro, 0x2C));
-//        printf("%d, %d, %d\n", gyro_raw[0], gyro_raw[1], gyro_raw[2]);
 
     int acc_raw_x = (int16_t)(wiringPiI2CReadReg8(fd_acc_mag, 0x29) << 8 | wiringPiI2CReadReg8(fd_acc_mag, 0x28));
     int acc_raw_y = (int16_t)(wiringPiI2CReadReg8(fd_acc_mag, 0x2B) << 8 | wiringPiI2CReadReg8(fd_acc_mag, 0x2A));
     int acc_raw_z = (int16_t)(wiringPiI2CReadReg8(fd_acc_mag, 0x2D) << 8 | wiringPiI2CReadReg8(fd_acc_mag, 0x2C));
-//        printf("%d, %d, %d\n", acc_raw[0], acc_raw[1], acc_raw[2]);
 
     int mag_raw_x = (int16_t)(wiringPiI2CReadReg8(fd_acc_mag, 0x08) | wiringPiI2CReadReg8(fd_acc_mag, 0x09) << 8);
     int mag_raw_y = (int16_t)(wiringPiI2CReadReg8(fd_acc_mag, 0x0A) | wiringPiI2CReadReg8(fd_acc_mag, 0x0B) << 8);
     int mag_raw_z = (int16_t)(wiringPiI2CReadReg8(fd_acc_mag, 0x0C) | wiringPiI2CReadReg8(fd_acc_mag, 0x0D) << 8);
-//    printf("%d, %d, %d\n", mag_raw[0], mag_raw[1], mag_raw[2]);
+
     *heading = atan2((double)mag_raw_x, (double)mag_raw_y)*180/PI;
     if(*heading < 0)
         *heading += 360;
+    //linear algebra normalization
+    double acc_norm_x = acc_raw_x/sqrt(acc_raw_x * acc_raw_x + acc_raw_y * acc_raw_y + acc_raw_z * acc_raw_z);
+    double acc_norm_y = acc_raw_y/sqrt(acc_raw_x * acc_raw_x + acc_raw_y * acc_raw_y + acc_raw_z * acc_raw_z);
+
+    *pitch = asin(acc_norm_y);
+    *roll = -(asin(acc_norm_x)/cos(*pitch));
+/*
+    double mag_tiltcomp_x = mag_raw_x * cos(*pitch) + mag_raw_z * sin(*pitch);
+    double mag_tiltcomp_y = mag_raw_y * sin(*roll) * sin(*pitch) + mag_raw_y * cos(*roll) - mag_raw_z * sin(*roll) * cos(*pitch);
+    *heading = atan2(mag_tiltcomp_x, mag_tiltcomp_y)*180/PI;
+    if(*heading < 0)
+        *heading += 360;
+*/
 }
 
