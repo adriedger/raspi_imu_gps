@@ -43,11 +43,13 @@ void createDestinationArray(){
     while(fgets(buffer, sizeof(buffer), fd) != NULL){
         latArr[i] = strtod(strtok(strtok(buffer, "\n"), ","), NULL);
         lonArr[i] = strtod(strtok(NULL, ","), NULL);
-        printf("Entry %d: %f, %f\n", i, latArr[i], lonArr[i]);
+//        printf("Entry %d: %f, %f\n", i, latArr[i], lonArr[i]);
+        printf("%f %f,",latArr[i], lonArr[i]);//
         i++; 
         latArr = realloc(latArr, (i+1)*sizeof(double));
         lonArr = realloc(lonArr, (i+1)*sizeof(double));
     }
+    printf("\n");//
     fclose(fd);
 }
 
@@ -181,7 +183,7 @@ void* loop(){
             bearing_to_dest += 360;
 
         getIMUdata(PsIMUHeading, PsIMUPitch, PsIMURoll);
-        
+/*        
         if(no_gps_fix)
             printf("No GPS Fix\n");
         else
@@ -189,14 +191,14 @@ void* loop(){
                 sGPSLat, sGPSLon, sGPSAlt, sGPSSpeed, sGPSHeading, bearing_to_dest);
         
         printf("IMU_Heading: %.1f  IMU_Pitch: %.1f  IMU_Roll: %.1f\n", sIMUHeading, sIMUPitch, sIMURoll);
-
+*/
         int sLat = round(sGPSLat * 10000);
         int sLon = round(sGPSLon * 10000);
         int dLat = round(latArr[current_dest] * 10000);
         int dLon = round(lonArr[current_dest] * 10000);
         if(current_dest < sizeof(latArr)){
 	        if((dLat-2 <= sLat && sLat <= dLat+2) && (dLon-2 <= sLon && sLon <= dLon+2)){
-	            printf("Reached Destination %d\n", current_dest+1);
+//	            printf("Reached Destination %d\n", current_dest+1);
                 if(current_dest == 0)
                     digitalWrite(GREEN_LED1, 1);
                 if(current_dest == 1)
@@ -206,13 +208,16 @@ void* loop(){
                 if(current_dest == 3)
                     digitalWrite(GREEN_LED4, 1);
 	            current_dest++;
-	            printf("Going to %.4f, %.4f next\n", latArr[current_dest], lonArr[current_dest]);
+//	            printf("Going to %.4f, %.4f next\n", latArr[current_dest], lonArr[current_dest]);
 	        }
         }
         else{
-            printf("Destinations reached, ending process...\n");
-            keepRunning =1;
+//            printf("Destinations reached, ending process...\n");
+            keepRunning = 1;
         }
+        //keeprunning, gpsfix, currentdest, lat, lon, alt, speed, heading, bearing, heading, pitch, roll
+        printf("%d,%d,%d,%.4f,%.4f,%.1f,%.2f,%.1f,%.1f,%.1f,%.1f,%.1f\n",keepRunning,no_gps_fix,current_dest,sGPSLat,sGPSLon,sGPSAlt,sGPSSpeed,sGPSHeading
+                ,bearing_to_dest,sIMUHeading,sIMUPitch,sIMURoll);
     }
     pthread_exit(NULL);
 }
@@ -239,7 +244,7 @@ int main(int argc, char* argv[]){
     softPwmCreate(GPSFIX_LED, 0, 100);
     
     createDestinationArray();
-    printf("Currently going to %.4f, %.4f\n", latArr[0], lonArr[0]);
+//    printf("Currently going to %.4f, %.4f\n", latArr[0], lonArr[0]);
 
     serialPort = open("/dev/ttyAMA0", O_RDONLY | O_NOCTTY | O_NDELAY | O_NONBLOCK);
     if(serialPort == -1){
