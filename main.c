@@ -43,8 +43,7 @@ void createDestinationArray(){
     while(fgets(buffer, sizeof(buffer), fd) != NULL){
         latArr[i] = strtod(strtok(strtok(buffer, "\n"), ","), NULL);
         lonArr[i] = strtod(strtok(NULL, ","), NULL);
-//        printf("Entry %d: %f, %f\n", i, latArr[i], lonArr[i]);
-        printf("%f %f,",latArr[i], lonArr[i]);//
+        printf("%.4f %.4f,",latArr[i], lonArr[i]);//
         i++; 
         latArr = realloc(latArr, (i+1)*sizeof(double));
         lonArr = realloc(lonArr, (i+1)*sizeof(double));
@@ -57,7 +56,7 @@ void getSerialData(double* sGPSLat, double* sGPSLon, double* sGPSAlt, double* sG
     char buffer[82];
     char *token;
     int i = 0, j = 0, latSign = 1, lonSign= 1;
-    char mLat[10], mLon[10], dLat[5], dLon[5];
+    char Lat[10], Lon[10], dLat[5], dLon[5], mLat[10], mLon[10];
     char altitude[10], speed[10], heading[10];
     read(serialPort, buffer, sizeof(buffer));
 
@@ -66,18 +65,12 @@ void getSerialData(double* sGPSLat, double* sGPSLon, double* sGPSAlt, double* sG
 	   while(token != NULL){ 
 	       switch(i++){
 	           case 2:
-	               strncpy(dLat, token, 2);
-                   for(int n=0; n<7; n++){
-                       mLat[n] = token[n+2];
-                   }
+	               strcpy(Lat, token);
 	           case 3:
 	               if(strcmp(token, "S") == 0)
 	                  latSign = -1; 
 	           case 4:
-	               strncpy(dLon, token, 3);
-                   for(int n=0; n<7; n++){
-                       mLon[n] = token[n+3];
-                   }
+	               strcpy(Lon, token);
 	           case 5:
 	               if(strcmp(token, "W") == 0)
 	                   lonSign = -1;
@@ -91,6 +84,14 @@ void getSerialData(double* sGPSLat, double* sGPSLon, double* sGPSAlt, double* sG
        }
        else{
            no_gps_fix = 0;
+
+           strncpy(dLat, Lat, 2);
+           strncpy(dLon, Lon, 3);
+           for(int n = 0; n < 7; n++){
+               mLat[n] = Lat[n+2];
+               mLon[n] = Lon[n+3];
+           }
+           
            *sGPSLat = (strtod(dLat, NULL) + (strtod(mLat, NULL) / 60)) * latSign;
            *sGPSLon = (strtod(dLon, NULL) + (strtod(mLon, NULL) / 60)) * lonSign;
            *sGPSAlt = strtod(altitude, NULL);
@@ -183,22 +184,13 @@ void* loop(){
             bearing_to_dest += 360;
 
         getIMUdata(PsIMUHeading, PsIMUPitch, PsIMURoll);
-/*        
-        if(no_gps_fix)
-            printf("No GPS Fix\n");
-        else
-            printf("Lat: %.4f  Lon: %.4f  GPS_Altitude: %.1fm  GPS_Speed: %.2fkn  GPS_Heading: %.1f  Bearing_to_Dest: %.1f\n", 
-                sGPSLat, sGPSLon, sGPSAlt, sGPSSpeed, sGPSHeading, bearing_to_dest);
-        
-        printf("IMU_Heading: %.1f  IMU_Pitch: %.1f  IMU_Roll: %.1f\n", sIMUHeading, sIMUPitch, sIMURoll);
-*/
+
         int sLat = round(sGPSLat * 10000);
         int sLon = round(sGPSLon * 10000);
         int dLat = round(latArr[current_dest] * 10000);
         int dLon = round(lonArr[current_dest] * 10000);
         if(current_dest < sizeof(latArr)){
 	        if((dLat-2 <= sLat && sLat <= dLat+2) && (dLon-2 <= sLon && sLon <= dLon+2)){
-//	            printf("Reached Destination %d\n", current_dest+1);
                 if(current_dest == 0)
                     digitalWrite(GREEN_LED1, 1);
                 if(current_dest == 1)
@@ -208,11 +200,9 @@ void* loop(){
                 if(current_dest == 3)
                     digitalWrite(GREEN_LED4, 1);
 	            current_dest++;
-//	            printf("Going to %.4f, %.4f next\n", latArr[current_dest], lonArr[current_dest]);
 	        }
         }
         else{
-//            printf("Destinations reached, ending process...\n");
             keepRunning = 1;
         }
         //keeprunning, gpsfix, currentdest, lat, lon, alt, speed, heading, bearing, heading, pitch, roll
@@ -244,7 +234,6 @@ int main(int argc, char* argv[]){
     softPwmCreate(GPSFIX_LED, 0, 100);
     
     createDestinationArray();
-//    printf("Currently going to %.4f, %.4f\n", latArr[0], lonArr[0]);
 
     serialPort = open("/dev/ttyAMA0", O_RDONLY | O_NOCTTY | O_NDELAY | O_NONBLOCK);
     if(serialPort == -1){

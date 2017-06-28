@@ -11,4 +11,4 @@ guidance: main.o imu.o
 	$(CC) -o $@ $^ $(CFLAGS) 
 
 clean: 
-	rm guidance *.o
+	rm guidance *.o out.txt
