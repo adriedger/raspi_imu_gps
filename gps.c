@@ -1,18 +1,20 @@
+#include <stdio.h>
 #include <stdlib.h>
 #include <fcntl.h> //file control definitions for open() i.e O_RDONLY
 #include <unistd.h> //unix standard library, for read()
 #include <string.h> //for strcopy stuff
+#include <errno.h>
 #include "gps.h"
 
-int serialPort;//get_GPS, main
+int serialPort;
 int no_gps_fix = 0;//get_GPS, strobe, loop
 
 void openSerialPort(){
     serialPort = open("/dev/ttyAMA0", O_RDONLY | O_NOCTTY | O_NDELAY | O_NONBLOCK);
-//    if(serialPort == -1){
-//        printf("Unable to open serial port\n");
-//        exit(1);
-//    }
+    if(serialPort == -1){
+        fprintf(stderr, "SERIAL PORT OPEN() ERROR: %s\n", strerror(errno));
+        exit(1);               
+    }
 }
 
 void closeSerialPort(){
@@ -20,9 +22,9 @@ void closeSerialPort(){
 }
 
 
-void getGPSdata(double* sGPSLat, double* sGPSLon, double* sGPSAlt, double* sGPSSpeed, double* sGPSHeading, int* noGPSFix){ 
+void getGPSdata(double* sGPSLat, double* sGPSLon, double* sGPSAlt, double* sGPSSpeed, double* sGPSHeading){ 
     char buffer[82];
-    char *token;
+    char* token;
     int i = 0, j = 0, latSign = 1, lonSign= 1;
     char Lat[10], Lon[10], dLat[5], dLon[5], mLat[10], mLon[10];
     char altitude[10], speed[10], heading[10];
