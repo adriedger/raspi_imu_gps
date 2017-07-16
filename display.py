@@ -32,16 +32,16 @@ def main(stdscr):
         last_line = subprocess.check_output(["tail", "-2", "out.txt"]).split("\n")[0]
         entry = last_line.split(',')
 
-        for i in range(3, 13):
+        for i in range(3, 12):
              stdscr.addstr(i, 16, "{}".format(" "*10))
-        stdscr.addstr(13, 0, "{}".format(" "*10))
+        stdscr.addstr(1, 0, "{}".format(" "*10))
 
         if(entry[0] == 0):
             stdscr.clear()
             stdscr.addstr(0, 0, "Reached Destinations/Guidance Terminated")
         else:
-            if(entry[1] == 1):
-                stdscr.addstr(13, 0, "NO GPS FIX", curses.color_pair(2))
+            if(entry[1] == "1"):
+                stdscr.addstr(1, 0, "NO GPS FIX", curses.color_pair(2))
 
             stdscr.addstr(2, 16, "{}".format("#"*int(entry[2])), curses.color_pair(3))
             stdscr.addstr(3, 15, "{}".format(destinations[int(entry[2])]), curses.color_pair(4))
