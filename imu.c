@@ -62,8 +62,7 @@ void getIMUdata(double* heading, double* pitch, double* roll){
     double rate_gyr_z = (double)gyro_raw_z*G_GAIN + 1;
 
 //    gyroPitch += rate_gyr_y*LP;
-//    gyroRoll += rate_gyr_x*LP;
-    
+//    gyroRoll += rate_gyr_x*LP;    
 //    printf("%.2f, %.2f, %.2f\n", rate_gyr_x, rate_gyr_y, rate_gyr_z);
 //    printf("Gyro %.2f, %.2f\n", gyroPitch, gyroRoll);
 
@@ -73,10 +72,15 @@ void getIMUdata(double* heading, double* pitch, double* roll){
 //    *pitch = asin(acc_norm_x);
 //    *roll = -(asin(acc_norm_y)/cos(*pitch));
 
-    double accPitch = (atan2((double)acc_raw_z,(double)acc_raw_x)+PI)*180/PI; //+ PI is to add 180 degrees to reading to make it 0-360
+    double accPitch = (atan2((double)acc_raw_z,(double)acc_raw_x)+PI/2)*180/PI; //+ PI is to add 90 or 180 degrees to reading to make it 0-360
     double accRoll = (atan2((double)acc_raw_y,(double)acc_raw_z)+PI)*180/PI; //same
-//    accRoll -= (double)180;
-
+    if(accPitch > 180){
+        accPitch -= 360;
+    }
+    if(accRoll > 180){
+        accRoll -= 360;
+    }
+    // need to make accPitch/Roll between -180/180 like gyro instead of 0/360
     *pitch = AA*(*pitch + rate_gyr_y * LP) + (1-AA) * accPitch; //complimentary filter
     *roll = AA*(*roll + rate_gyr_x * LP) + (1-AA) * accRoll;
 
