@@ -13,15 +13,12 @@
 #include "gps.h"
 
 #define PI 3.14159265
-#define NOFIX_LED 20
-#define GPSFIX_LED 26
+#define STROBE_LED 26
 
 volatile int keepRunning = 1;
 
 double* latArr;//main, create, loop
 double* lonArr;//main, create, loop
-
-//int LEDs[4] = {5,6,13,16};
 
 void intHandler(int dummy) {
 	keepRunning = 0;
@@ -120,7 +117,6 @@ void* loop(){
         if(current_dest < sizeof(latArr)){
 	        if((latArr[current_dest]-.0002 <= sGPSLat && sGPSLat <= latArr[current_dest]+.0002) && 
                     (lonArr[current_dest]-.0003 <= sGPSLon && sGPSLon <= lonArr[current_dest]+.0003)){
-//               digitalWrite(LEDs[current_dest], 1); 
                current_dest++;
 	        }
         }
@@ -149,12 +145,7 @@ int main(int argc, char* argv[]){
 	pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_JOINABLE);
 
 	wiringPiSetupGpio();
-//    pinMode(LEDs[0], OUTPUT);
-//    pinMode(LEDs[1], OUTPUT);
-//    pinMode(LEDs[2], OUTPUT);
-//    pinMode(LEDs[3], OUTPUT);
-    pinMode(NOFIX_LED, OUTPUT);
-    softPwmCreate(GPSFIX_LED, 0, 100);
+//    softPwmCreate(STROBE_LED, 0, 100);
     
     createDestinationArray();
     
@@ -181,12 +172,7 @@ int main(int argc, char* argv[]){
         }
     }
     
-//    digitalWrite(LEDs[0], 0);
-//    digitalWrite(LEDs[1], 0);
-//    digitalWrite(LEDs[2], 0);
-//    digitalWrite(LEDs[3], 0);
-    digitalWrite(NOFIX_LED, 0);
-    pinMode(GPSFIX_LED, OUTPUT);
+//    pinMode(STROBE_LED, OUTPUT);
     free(latArr);
     free(lonArr);
     closeSerialPort();

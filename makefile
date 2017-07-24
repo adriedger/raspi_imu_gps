@@ -11,5 +11,8 @@ guidance: main.o imu.o gps.o
 	$(CC) -o $@ $^ $(CFLAGS)
 	touch out.txt
 
+cal: calibrateIMU.c
+	$(CC) -o $@ $^ $(CFLAGS)
+
 clean: 
-	rm guidance *.o out.txt
+	rm guidance cal *.o out.txt

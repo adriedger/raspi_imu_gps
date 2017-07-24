@@ -7,14 +7,13 @@
 #include "imu.h"
 
 #define PI 3.14159265
-#define LP 0.02 //[s/loop] loop period 20ms
+#define LP 0.020 //[s/loop] loop period 20ms
 #define AA 0.97 //complimentary filter constant
 #define G_GAIN 0.070 //[deg/s/LSB] taken from manual for 2000dsp
+#define RADTODEG 180/PI
 
 int fd_gyro;
 int fd_acc_mag;
-//double gyroPitch = 0;
-//double gyroRoll = 0;
 
 double nanosec(){
     struct timespec tv;
@@ -38,9 +37,7 @@ void enableIMU(){
 }
 
 void getIMUdata(double* heading, double* pitch, double* roll){
-
-    double start = nanosec();
-        
+    //pitch up is +, roll right is +, yaw clockwise is +    
     int gyro_raw_x = (int16_t)(wiringPiI2CReadReg8(fd_gyro, 0x29) << 8 | wiringPiI2CReadReg8(fd_gyro, 0x28));
     int gyro_raw_y = (int16_t)(wiringPiI2CReadReg8(fd_gyro, 0x2B) << 8 | wiringPiI2CReadReg8(fd_gyro, 0x2A));
     int gyro_raw_z = (int16_t)(wiringPiI2CReadReg8(fd_gyro, 0x2D) << 8 | wiringPiI2CReadReg8(fd_gyro, 0x2C));
@@ -53,41 +50,42 @@ void getIMUdata(double* heading, double* pitch, double* roll){
     int mag_raw_y = (int16_t)(wiringPiI2CReadReg8(fd_acc_mag, 0x0B) << 8 | wiringPiI2CReadReg8(fd_acc_mag, 0x0A));
     int mag_raw_z = (int16_t)(wiringPiI2CReadReg8(fd_acc_mag, 0x0D) << 8 | wiringPiI2CReadReg8(fd_acc_mag, 0x0C));
     
-    *heading = atan2((double)-mag_raw_y, (double)mag_raw_x)*180/PI;
-    if(*heading < 0)
-        *heading += 360;
+//    printf("%d, %d, %d\n", mag_raw_x, mag_raw_y, mag_raw_z);
 
-    double rate_gyr_x = (double)gyro_raw_x*G_GAIN + .20; //converts raw to deg/s of rotation + calibration
-    double rate_gyr_y = (double)gyro_raw_y*G_GAIN - 3.06;
-    double rate_gyr_z = (double)gyro_raw_z*G_GAIN + 1;
+    double accXnorm = acc_raw_x/sqrt(acc_raw_x * acc_raw_x + acc_raw_y * acc_raw_y + acc_raw_z * acc_raw_z);
+    double accYnorm = acc_raw_y/sqrt(acc_raw_x * acc_raw_x + acc_raw_y * acc_raw_y + acc_raw_z * acc_raw_z);
+    
+    double accPitch = asin(accXnorm); //in radians
+    double accRoll = -asin(accYnorm/cos(accPitch));
+//    printf("%.2f, %.2f\n", accPitch*RADTODEG, accRoll*RADTODEG);
 
-//    gyroPitch += rate_gyr_y*LP;
-//    gyroRoll += rate_gyr_x*LP;    
-//    printf("%.2f, %.2f, %.2f\n", rate_gyr_x, rate_gyr_y, rate_gyr_z);
-//    printf("Gyro %.2f, %.2f\n", gyroPitch, gyroRoll);
+    double magXcomp = mag_raw_x*cos(accPitch) + mag_raw_z*sin(accPitch);
+    double magYcomp = mag_raw_x*sin(accRoll)*sin(accPitch) + mag_raw_y*cos(accRoll) - mag_raw_z*sin(accRoll)*cos(accPitch);//
+//    printf("%.f, %.f\n", magXcomp, magYcomp);
 
-//    double acc_norm_x = acc_raw_x/sqrt(acc_raw_x * acc_raw_x + acc_raw_y * acc_raw_y + acc_raw_z * acc_raw_z);
-//    double acc_norm_y = acc_raw_y/sqrt(acc_raw_x * acc_raw_x + acc_raw_y * acc_raw_y + acc_raw_z * acc_raw_z);
+    double magAccHeading = atan2((double)-magYcomp,(double)magXcomp);//
+    if(magAccHeading < 0)
+       magAccHeading += PI*2;
+   
+//    printf("%.1f\n", magAccHeading*RADTODEG);
+//    double accPitch = (atan2((double)acc_raw_z,(double)acc_raw_x)+PI/2);// -PI/2 -> 0 -> PI*1.5
+//    double accRoll = (atan2((double)acc_raw_z,(double)-acc_raw_y)+PI/2);// -PI/2 -> 0 -> PI*1.5 
+    //makes accPitch/Roll between -180 -> 180 like gyro, or is gyro 0 -> 90?
+//    if(accPitch > PI)
+//        accPitch -= PI*2;
+//    if(accRoll > PI)
+//        accRoll -= PI*2;
 
-//    *pitch = asin(acc_norm_x);
-//    *roll = -(asin(acc_norm_y)/cos(*pitch));
+    double rate_gyr_x = (double)gyro_raw_x*G_GAIN-(1.72/1000/LP); //converts raw to deg/s of rotation + calibration
+    double rate_gyr_y = (double)gyro_raw_y*G_GAIN-(62.85/1000/LP);
+    double rate_gyr_z = (double)gyro_raw_z*G_GAIN-(-4.40/1000/LP);
 
-    double accPitch = (atan2((double)acc_raw_z,(double)acc_raw_x)+PI/2)*180/PI; //+ PI is to add 90 or 180 degrees to reading to make it 0-360
-    double accRoll = (atan2((double)acc_raw_y,(double)acc_raw_z)+PI)*180/PI; //same
-    if(accPitch > 180){
-        accPitch -= 360;
-    }
-    if(accRoll > 180){
-        accRoll -= 360;
-    }
-    // need to make accPitch/Roll between -180/180 like gyro instead of 0/360
-    *pitch = AA*(*pitch + rate_gyr_y * LP) + (1-AA) * accPitch; //complimentary filter
-    *roll = AA*(*roll + rate_gyr_x * LP) + (1-AA) * accRoll;
-
-//    printf("Acc %.2f, %.2f\n", accPitch, accRoll);
+    double start = nanosec();
+    *pitch = AA*(*pitch + rate_gyr_y*LP) + (1-AA) * accPitch*RADTODEG; //complimentary filter, gyro in short run, acc in long run
+    *roll = AA*(*roll + rate_gyr_x*LP) + (1-AA) * accRoll*RADTODEG;
+    *heading = AA*(*heading + rate_gyr_z*LP) + (1-AA)*magAccHeading*RADTODEG;
 
     while(nanosec()-start < LP){
         usleep(100);
     }
 }
-

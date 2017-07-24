@@ -23,7 +23,7 @@ def main(stdscr):
     stdscr.addstr(7, 0, "GPS Speed: ")
     stdscr.addstr(8, 0, "GPS Heading: ")
     stdscr.addstr(5, 0, "Bearing: ")
-    stdscr.addstr(9, 0, "IMU Heading: ")
+    stdscr.addstr(9, 0, "Heading: ")
     stdscr.addstr(10, 0, "Pitch: ")
     stdscr.addstr(11, 0, "Roll: ")
     stdscr.addstr(12, 0, "Flight Time: ")

@@ -58,7 +58,6 @@ void getGPSdata(double* sGPSLat, double* sGPSLon, double* sGPSAlt, double* sGPSS
 	       }
 	       token = strtok(NULL, ",");
 	   }
-//       printf("%s,%s\n", Lat, Lon);
        if(i < 14){
            no_gps_fix = 1;
        }
@@ -73,7 +72,6 @@ void getGPSdata(double* sGPSLat, double* sGPSLon, double* sGPSAlt, double* sGPSS
                mLat[n] = Lat[n+2];
                mLon[n] = Lon[n+3];
            }
-//           printf("%s,%s,%s,%s\n", dLat, mLat, dLon, mLon);
            *sGPSLat = (strtod(dLat, NULL) + (strtod(mLat, NULL) / 60)) * latSign;
            *sGPSLon = (strtod(dLon, NULL) + (strtod(mLon, NULL) / 60)) * lonSign;
            *sGPSAlt = strtod(altitude, NULL);

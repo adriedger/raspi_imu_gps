@@ -7,7 +7,7 @@
 void startMotors(){
 }
 
-void motorControl(double delta){
+void headingControl(double delta){
 }
     
 void stopMotors(){
