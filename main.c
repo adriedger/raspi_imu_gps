@@ -11,9 +11,7 @@
 #include <time.h>
 #include "imu.h"
 #include "gps.h"
-
-#define PI 3.14159265
-#define STROBE_LED 26
+#include "mc.h"
 
 volatile int keepRunning = 1;
 
@@ -52,28 +50,23 @@ void* strobe(){/*
     int counter = 0;
     while(keepRunning){
         softPwmWrite(GPSFIX_LED, counter);
-        digitalWrite(NOFIX_LED, no_gps_fix);
-        if(no_gps_fix == 0){
-            if(modDir == 0){
-                if(counter == 100){
-                    modDir = 1;
-                    counter--;
-                }
-                else
-                    counter++;
+        if(modDir == 0){
+            if(counter == 100){
+                modDir = 1;
+                counter--;
             }
-            else{
-                if(counter == 0){
-                    modDir = 0;
-                    counter++;
-                }
-                else
-                    counter--;
-            }
-            usleep(10000);
+            else
+                counter++;
         }
         else{
-            counter = 0;
+            if(counter == 0){
+                modDir = 0;
+                counter++;
+            }
+            else
+                counter--;
+        }
+        usleep(10000);
         }
     }*/
     pthread_exit(NULL);
@@ -108,12 +101,14 @@ void* loop(){
     while(keepRunning){
         getGPSdata(PsGPSLat, PsGPSLon, PsGPSAlt, PsGPSSpeed, PsGPSHeading);
                 
-        double bearing_to_dest = atan2(lonArr[current_dest]-sGPSLon, latArr[current_dest]-sGPSLat)*180/PI;
-        if(bearing_to_dest < 0)
-            bearing_to_dest += 360;
+        double bearing_to_dest = atan2(lonArr[current_dest]-sGPSLon, latArr[current_dest]-sGPSLat)*180/M_PI;
+//        if(bearing_to_dest < 0)
+//            bearing_to_dest += 360;
 
         getIMUdata(PsIMUHeading, PsIMUPitch, PsIMURoll);
-
+        
+//        headingControl(0);
+        headingControl(bearing_to_dest - sIMUHeading);
         if(current_dest < sizeof(latArr)){
 	        if((latArr[current_dest]-.0002 <= sGPSLat && sGPSLat <= latArr[current_dest]+.0002) && 
                     (lonArr[current_dest]-.0003 <= sGPSLon && sGPSLon <= lonArr[current_dest]+.0003)){
@@ -123,6 +118,7 @@ void* loop(){
         else{
             keepRunning = 1;
         }
+
         //keeprunning, gpsfix, currentdest, lat, lon, alt, speed, heading, bearing, heading, pitch, roll, flighttime
         time(&tNow);
         printf("%d,%d,%d,%.4f,%.4f,%.1f,%.2f,%.1f,%.1f,%.1f,%.1f,%.1f,%ld\n",keepRunning,no_gps_fix,current_dest,sGPSLat,sGPSLon,sGPSAlt,sGPSSpeed,sGPSHeading
@@ -145,20 +141,18 @@ int main(int argc, char* argv[]){
 	pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_JOINABLE);
 
 	wiringPiSetupGpio();
-//    softPwmCreate(STROBE_LED, 0, 100);
-    
-    createDestinationArray();
-    
-    openSerialPort();
 
+    startServo();
+    createDestinationArray();    
+    openSerialPort();
     enableIMU();
 
-    rc = pthread_create(&threads[0], NULL, strobe, (void*)0);
+    rc = pthread_create(&threads[0], NULL, strobe, NULL);
     if(rc){
         fprintf(stderr, "ERROR: RETURN CODE FROM PTHREAD_CREATE() IS %s\n", strerror(errno));//*
         exit(-1);
     }
-    rc = pthread_create(&threads[1], NULL, loop, (void*)1);
+    rc = pthread_create(&threads[1], NULL, loop, NULL);
     if(rc){
         fprintf(stderr, "ERROR: RETURN CODE FROM PTHREAD_CREATE() IS %s\n", strerror(errno));//*
         exit(-1);
@@ -172,7 +166,7 @@ int main(int argc, char* argv[]){
         }
     }
     
-//    pinMode(STROBE_LED, OUTPUT);
+    stopServo();
     free(latArr);
     free(lonArr);
     closeSerialPort();

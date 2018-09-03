@@ -6,11 +6,11 @@
 #include <wiringPiI2C.h>
 #include "imu.h"
 
-#define PI 3.14159265
+//#define PI 3.14159265
 #define LP 0.020 //[s/loop] loop period 20ms
 #define AA 0.97 //complimentary filter constant
 #define G_GAIN 0.070 //[deg/s/LSB] taken from manual for 2000dsp
-#define RADTODEG 180/PI
+#define RADTODEG 180/M_PI
 
 int fd_gyro;
 int fd_acc_mag;
@@ -64,8 +64,8 @@ void getIMUdata(double* heading, double* pitch, double* roll){
 //    printf("%.f, %.f\n", magXcomp, magYcomp);
 
     double magAccHeading = atan2((double)-magYcomp,(double)magXcomp);//
-    if(magAccHeading < 0)
-       magAccHeading += PI*2;
+//    if(magAccHeading < 0)
+//       magAccHeading += PI*2;
    
 //    printf("%.1f\n", magAccHeading*RADTODEG);
 //    double accPitch = (atan2((double)acc_raw_z,(double)acc_raw_x)+PI/2);// -PI/2 -> 0 -> PI*1.5
@@ -83,7 +83,7 @@ void getIMUdata(double* heading, double* pitch, double* roll){
     double start = nanosec();
     *pitch = AA*(*pitch + rate_gyr_y*LP) + (1-AA) * accPitch*RADTODEG; //complimentary filter, gyro in short run, acc in long run
     *roll = AA*(*roll + rate_gyr_x*LP) + (1-AA) * accRoll*RADTODEG;
-    *heading = AA*(*heading + rate_gyr_z*LP) + (1-AA)*magAccHeading*RADTODEG;
+    *heading = AA*(*heading + rate_gyr_z*LP) + (1-AA) * magAccHeading*RADTODEG;
 
     while(nanosec()-start < LP){
         usleep(100);

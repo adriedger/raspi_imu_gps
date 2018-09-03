@@ -1,8 +1,8 @@
 #ifndef MC_H
 #define MC_H
 
-void startMotors();
+void startServo();
 void headingControl(double);
-void stopMotors();
+void stopServo();
 
 #endif

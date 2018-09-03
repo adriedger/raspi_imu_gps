@@ -5,11 +5,8 @@
 #include <unistd.h>
 #include <wiringPiI2C.h>
 
-#define PI 3.14159265
-#define LP 0.02 //[s/loop] loop period 20ms
-#define AA 0.97 //complimentary filter constant
-#define G_GAIN 0.070 //[deg/s/LSB] taken from manual for 2000dsp
-#define RADTODEG 180/PI
+#define LP 0.020
+#define G_GAIN 0.070
 
 int fd_gyro;
 int fd_acc_mag;
@@ -38,7 +35,7 @@ void enableIMU(){
     wiringPiI2CWriteReg8(fd_acc_mag, 0x26, 0b00000000); //continuous update
 }
 
-void getIMUdata(){
+void Gyros(){
 
     int gyro_raw_x = (int16_t)(wiringPiI2CReadReg8(fd_gyro, 0x29) << 8 | wiringPiI2CReadReg8(fd_gyro, 0x28));
     int gyro_raw_y = (int16_t)(wiringPiI2CReadReg8(fd_gyro, 0x2B) << 8 | wiringPiI2CReadReg8(fd_gyro, 0x2A));
@@ -63,7 +60,7 @@ int main(){
     enableIMU();
     int x = 0;
     while(x<1000){
-        getIMUdata();
+        Gyros();
         x++;
     }
     printf("%.2f, %.2f, %.2f\n", gyroX, gyroY, gyroZ);

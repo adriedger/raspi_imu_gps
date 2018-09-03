@@ -1,0 +1,50 @@
+!_TAG_FILE_FORMAT	2	/extended format; --format=1 will not append ;" to lines/
+!_TAG_FILE_SORTED	1	/0=unsorted, 1=sorted, 2=foldcase/
+!_TAG_PROGRAM_AUTHOR	Darren Hiebert	/dhiebert@users.sourceforge.net/
+!_TAG_PROGRAM_NAME	Exuberant Ctags	//
+!_TAG_PROGRAM_URL	http://ctags.sourceforge.net	/official site/
+!_TAG_PROGRAM_VERSION	5.9~svn20110310	//
+AA	imu.c	11;"	d	file:
+CC	makefile	/^CC = gcc$/;"	m
+CFLAGS	makefile	/^CFLAGS = -std=gnu11 -Wall -lwiringPi -lm -lpthread$/;"	m
+DEPS	makefile	/^DEPS = imu.h gps.h mc.h$/;"	m
+GPS_H	gps.h	2;"	d
+G_GAIN	calibrateIMU.c	9;"	d	file:
+G_GAIN	imu.c	12;"	d	file:
+Gyros	calibrateIMU.c	/^void Gyros(){$/;"	f
+IMU_H	imu.h	2;"	d
+LP	calibrateIMU.c	8;"	d	file:
+LP	imu.c	10;"	d	file:
+MC_H	mc.h	2;"	d
+RADTODEG	imu.c	13;"	d	file:
+SERVO	mc.c	5;"	d	file:
+closeSerialPort	gps.c	/^void closeSerialPort(){$/;"	f
+createDestinationArray	main.c	/^void createDestinationArray(){$/;"	f
+enableIMU	calibrateIMU.c	/^void enableIMU(){$/;"	f
+enableIMU	imu.c	/^void enableIMU(){$/;"	f
+fd_acc_mag	calibrateIMU.c	/^int fd_acc_mag;$/;"	v
+fd_acc_mag	imu.c	/^int fd_acc_mag;$/;"	v
+fd_gyro	calibrateIMU.c	/^int fd_gyro;$/;"	v
+fd_gyro	imu.c	/^int fd_gyro;$/;"	v
+getGPSdata	gps.c	/^void getGPSdata(double* sGPSLat, double* sGPSLon, double* sGPSAlt, double* sGPSSpeed, double* sGPSHeading){ $/;"	f
+getIMUdata	imu.c	/^void getIMUdata(double* heading, double* pitch, double* roll){$/;"	f
+gyroX	calibrateIMU.c	/^double gyroX = 0;$/;"	v
+gyroY	calibrateIMU.c	/^double gyroY = 0;$/;"	v
+gyroZ	calibrateIMU.c	/^double gyroZ = 0;$/;"	v
+headingControl	mc.c	/^void headingControl(double delta){$/;"	f
+intHandler	main.c	/^void intHandler(int dummy) {$/;"	f
+keepRunning	main.c	/^volatile int keepRunning = 1;$/;"	v
+latArr	main.c	/^double* latArr;\/\/main, create, loop$/;"	v
+lonArr	main.c	/^double* lonArr;\/\/main, create, loop$/;"	v
+loop	main.c	/^void* loop(){$/;"	f
+main	calibrateIMU.c	/^int main(){$/;"	f
+main	display.py	/^def main(stdscr):$/;"	f
+main	main.c	/^int main(int argc, char* argv[]){$/;"	f
+nanosec	calibrateIMU.c	/^double nanosec(){$/;"	f
+nanosec	imu.c	/^double nanosec(){$/;"	f
+no_gps_fix	gps.c	/^int no_gps_fix = 0;\/\/get_GPS, strobe, loop$/;"	v
+openSerialPort	gps.c	/^void openSerialPort(){$/;"	f
+serialPort	gps.c	/^int serialPort;$/;"	v
+startServo	mc.c	/^void startServo(){$/;"	f
+stopServo	mc.c	/^void stopServo(){$/;"	f
+strobe	main.c	/^void* strobe(){\/*$/;"	f

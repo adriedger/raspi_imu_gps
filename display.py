@@ -18,11 +18,11 @@ def main(stdscr):
     stdscr.addstr(0, 0, "Andre's Guidance System", curses.A_BOLD)
     stdscr.addstr(2, 0, "Dests Reached: [{}]".format(" "*len(destinations)))
     stdscr.addstr(3, 0, "Going to: ")
-    stdscr.addstr(4, 0, "Lat Lon: ")
+    stdscr.addstr(5, 0, "Lat Lon: ")
     stdscr.addstr(6, 0, "GPS Altitude: ")
     stdscr.addstr(7, 0, "GPS Speed: ")
     stdscr.addstr(8, 0, "GPS Heading: ")
-    stdscr.addstr(5, 0, "Bearing: ")
+    stdscr.addstr(4, 0, "Bearing: ")
     stdscr.addstr(9, 0, "Heading: ")
     stdscr.addstr(10, 0, "Pitch: ")
     stdscr.addstr(11, 0, "Roll: ")
@@ -31,6 +31,14 @@ def main(stdscr):
     while(1):
         last_line = subprocess.check_output(["tail", "-2", "out.txt"]).split("\n")[0]
         entry = last_line.split(',')
+
+        bearing = float(entry[8])
+        heading = float(entry[9])
+        if(bearing < 0):
+            bearing += 360
+
+        if(heading < 0):
+            heading += 360
 
         for i in range(3, 12):
              stdscr.addstr(i, 16, "{}".format(" "*10))
@@ -45,12 +53,12 @@ def main(stdscr):
 
             stdscr.addstr(2, 16, "{}".format("#"*int(entry[2])), curses.color_pair(3))
             stdscr.addstr(3, 15, "{}".format(destinations[int(entry[2])]), curses.color_pair(4))
-            stdscr.addstr(4, 15, "{} {}".format(entry[3], entry[4]), curses.color_pair(3))
+            stdscr.addstr(5, 15, "{} {}".format(entry[3], entry[4]), curses.color_pair(3))
             stdscr.addstr(6, 15, "{}m".format(entry[5]), curses.color_pair(3))
             stdscr.addstr(7, 15, "{}kn".format(entry[6]), curses.color_pair(3))
             stdscr.addstr(8, 15, "{}".format(entry[7]), curses.color_pair(3))
-            stdscr.addstr(5, 15, "{}".format(entry[8]), curses.color_pair(5))
-            stdscr.addstr(9, 15, "{}".format(entry[9]), curses.color_pair(7))
+            stdscr.addstr(4, 15, "{}".format(bearing), curses.color_pair(5))
+            stdscr.addstr(9, 15, "{}".format(heading), curses.color_pair(7))
             stdscr.addstr(10, 15, "{}".format(entry[10]), curses.color_pair(7))
             stdscr.addstr(11, 15, "{}".format(entry[11]), curses.color_pair(7))
             stdscr.addstr(12, 15, "{}s".format(entry[12]), curses.color_pair(8))
